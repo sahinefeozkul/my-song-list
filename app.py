@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
+import re
 
 app = Flask(__name__)
 app.secret_key = 'gizli_anahtar_my_song_list'
@@ -10,14 +11,51 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+# YouTube linkinden sadece ID'yi çıkartan Business Logic
+def extract_youtube_id(url):
+    if not url:
+        return None
+    # Hem kısa (youtu.be) hem uzun (youtube.com) linkleri yakalar
+    match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11}).*", url)
+    return match.group(1) if match else None
+
 # Ana Sayfa
 @app.route('/')
 def index():
-    # Eğer kullanıcı giriş yapmışsa (session'da user_id varsa)
     if 'user_id' in session:
-        return f"<h1>Hoşgeldin, {session['username']}!</h1> <a href='/logout'>Çıkış Yap</a>"
-    # Giriş yapmamışsa
+        # Kullanıcı giriş yaptıysa şarkı ekleme butonu da çıksın
+        return f"<h1>Hoşgeldin, {session['username']}!</h1> <a href='/add_song'>Yeni Şarkı Ekle</a> | <a href='/logout'>Çıkış Yap</a>"
     return "<h1>my song list</h1> <a href='/login'>Giriş Yap</a> | <a href='/register'>Kayıt Ol</a>"
+
+# Şarkı Ekleme (Create) İşlemi - US1
+@app.route('/add_song', methods=('GET', 'POST'))
+def add_song():
+    # Eğer kullanıcı giriş yapmamışsa direkt login sayfasına at
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        title = request.form['title']
+        artist = request.form['artist']
+        youtube_link = request.form['youtube_link']
+        rating = request.form['rating']
+        genius_note = request.form['genius_note']
+        user_id = session['user_id'] # Hangi kullanıcı ekliyor?
+        
+        # Linki parçala ve sadece ID'yi al
+        youtube_id = extract_youtube_id(youtube_link)
+        
+        conn = get_db_connection()
+        conn.execute('''
+            INSERT INTO songs (title, artist, youtube_id, rating, genius_note, user_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (title, artist, youtube_id, rating, genius_note, user_id))
+        conn.commit()
+        conn.close()
+        
+        return redirect(url_for('index')) # Ekledikten sonra ana sayfaya dön
+        
+    return render_template('add_song.html')
 
 # Kayıt Olma
 @app.route('/register', methods=('GET', 'POST'))

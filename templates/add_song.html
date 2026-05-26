@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Şarkı Ekle - my song list</title>
+</head>
+<body>
+    <h2>my song list - Yeni Şarkı Ekle</h2>
+    <form method="post">
+        <label for="title">Şarkı Adı:</label><br>
+        <input type="text" name="title" id="title" required><br><br>
+        
+        <label for="artist">Sanatçı:</label><br>
+        <input type="text" name="artist" id="artist" required><br><br>
+        
+        <label for="youtube_link">YouTube Linki (Opsiyonel):</label><br>
+        <input type="text" name="youtube_link" id="youtube_link" placeholder="Örn: https://www.youtube.com/watch?v=..."><br><br>
+        
+        <label for="rating">Puanın (1-10):</label><br>
+        <input type="number" name="rating" id="rating" min="1" max="10" required><br><br>
+
+        <label for="genius_note">Genius Notun (Ne hissettirdi?):</label><br>
+        <textarea name="genius_note" id="genius_note" rows="4" cols="50"></textarea><br><br>
+        
+        <button type="submit">Listeme Ekle</button>
+    </form>
+    <br>
+    <a href="/">Ana Sayfaya Dön</a>
+</body>
+</html>
